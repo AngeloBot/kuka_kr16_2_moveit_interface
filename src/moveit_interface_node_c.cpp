@@ -32,10 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Sachin Chitta, Dave Coleman, Mike Lautman */
 #include "rclcpp/rclcpp.hpp"
 
-#include "moveit/move_group_interface/move_group_interface.h"
+#include "moveit/move_group_interface/move_group_interface.hpp"
 //#include <moveit/planning_scene_interface/planning_scene_interface.hpp>
 
 //#include <moveit_msgs/msg/display_robot_state.hpp>
@@ -48,7 +47,7 @@
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 //#include <moveit/move_group_interface/move_group_interface.h>
-//#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model_loader/robot_model_loader.hpp>
 //#include <moveit/robot_state/robot_state.h>
 
 using std::placeholders::_1;
@@ -60,55 +59,81 @@ using std::placeholders::_1;
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("kuka_cpp_interface");
 static const std::string PLANNING_GROUP = "kuka_arm";
 
-class KukaMoveItCppInterface : public rclcpp::Node //custom class
+class KukaMoveItCppInterface
 {
+  //using Composition
 public:
-  KukaMoveItCppInterface() // default constructor
-  : Node("moveit_cpp_interface_node")
-  {   
-      moveit::planning_interface::MoveGroupInterface move_group_(std::make_shared<rclcpp::Node>(this->get_name()), PLANNING_GROUP);
+  // default constructor
+  explicit KukaMoveItCppInterface(rclcpp::Node::SharedPtr node)
+    : node_(node)
+      //robot_model_loader_(node, "robot_description"),
+      //robot_model_(robot_model_loader_.getModel()),
+      //robot_state_(std::make_shared<moveit::core::RobotState>(robot_model_))
+      {   
+      move_group_ptr_= new moveit::planning_interface::MoveGroupInterface(std::make_shared<rclcpp::Node>(node_->get_name()), PLANNING_GROUP);
       //moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
       //const moveit::core::JointModelGroup* joint_model_group_ = move_group_.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
       
       // Getting Basic Information
       // We can print the name of the reference frame for this robot.
-      RCLCPP_INFO(LOGGER, "Planning frame: %s", move_group_.getPlanningFrame().c_str());
+      RCLCPP_INFO(LOGGER, "Planning frame: %s", move_group_ptr_->getPlanningFrame().c_str());
       // We can also print the name of the end-effector link for this group.
-      RCLCPP_INFO(LOGGER, "End effector link: %s", move_group_.getEndEffectorLink().c_str());
+      RCLCPP_INFO(LOGGER, "End effector link: %s", move_group_ptr_-> getEndEffectorLink().c_str());
       // We can get a list of all the groups in the robot:
       RCLCPP_INFO(LOGGER, "Available Planning Groups:");
-      std::copy(move_group_.getJointModelGroupNames().begin(), move_group_.getJointModelGroupNames().end(),
+      std::copy( move_group_ptr_-> getJointModelGroupNames().begin(), move_group_ptr_-> getJointModelGroupNames().end(),
                 std::ostream_iterator<std::string>(std::cout, ", "));
 
-      subscription_= this->create_subscription<geometry_msgs::msg::PoseStamped>(
+      subscription_= node_ -> create_subscription<geometry_msgs::msg::PoseStamped>(
         "new_pose_goal",1, std::bind(&KukaMoveItCppInterface::moveCallback, this, _1));
+
+      move_group_ptr_ -> setJointValueTarget(move_group_ptr_ ->getCurrentJointValues());
+      move_group_ptr_ -> setNamedTarget("ready");
   }
 
+    ~KukaMoveItCppInterface()
+    {
+      delete move_group_ptr_;
+    }
 private:
 
     void moveCallback(const geometry_msgs::msg::PoseStamped & target_pose)
     {
-      RCLCPP_INFO(this->get_logger(), "Moving to: '%s'", target_pose);
-      move_group_.setPoseTarget(target_pose);
+      RCLCPP_INFO(node_->get_logger(), "Moving to: w='%f' x='%f' y='%f' z='%f'",
+        target_pose.pose.orientation.w,
+        target_pose.pose.position.x,
+        target_pose.pose.position.y,
+        target_pose.pose.position.z);
+
+        move_group_ptr_-> setPoseTarget(target_pose);
       moveit::planning_interface::MoveGroupInterface::Plan plan;
-      bool success = (move_group_.plan(plan) == moveit::core::MoveItErrorCode::SUCCESS);
+      bool success = (move_group_ptr_-> plan(plan) == moveit::core::MoveItErrorCode::SUCCESS);
       RCLCPP_INFO(LOGGER, "Intended Pose Goal %s", success ? "" : "FAILED");
       if(success){
-        move_group_.move(); //execute move if plan was successful
+        move_group_ptr_-> move(); //execute move if plan was successful
       }
     }
+    rclcpp::Node::SharedPtr node_;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr subscription_;
-    moveit::planning_interface::MoveGroupInterface move_group_;
+    moveit::planning_interface::MoveGroupInterface* move_group_ptr_;
+    //robot_model_loader::RobotModelLoader robot_model_loader_;
+    //moveit::core::RobotModelPtr robot_model_;
+    //moveit::core::RobotStatePtr robot_state_;
     //moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
     //const moveit::core::JointModelGroup* joint_model_group_;
 };
 
 int main(int argc, char** argv)
 {
+
+  
   rclcpp::init(argc, argv);
-  RCLCPP_INFO(LOGGER, "Initializing kuka_moveit_cpp_interface_node");
-  auto kuka_cpp_interface_node = std::make_shared<KukaMoveItCppInterface>();
-  rclcpp::spin(kuka_cpp_interface_node);
+  RCLCPP_INFO(LOGGER, "Initializing");
+  //auto node = std::make_shared<rclcpp::Node>("moveit_cpp_interface_node");
+  auto node = std::make_shared<rclcpp::Node>("moveit_cpp_interface_c");
+  KukaMoveItCppInterface kuka_interface(node);
+  RCLCPP_INFO(LOGGER, "Initialization complete");
+  rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;
 }

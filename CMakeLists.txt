@@ -7,9 +7,52 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
+find_package(geometry_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+add_executable(moveit_interface_node_i src/moveit_interface_node_i.cpp)
+ament_target_dependencies(moveit_interface_node_i
+  "rclcpp"
+  "moveit_ros_planning_interface"
+  "geometry_msgs"
+)
+
+add_executable(moveit_interface_node_c src/moveit_interface_node_c.cpp)
+ament_target_dependencies(moveit_interface_node_c
+  "rclcpp"
+  "moveit_ros_planning_interface"
+  "geometry_msgs"
+)
+
+add_executable(interface_test_c src/interface_test_c.cpp)
+ament_target_dependencies(interface_test_c
+  "rclcpp"
+  "moveit_ros_planning_interface"
+  "geometry_msgs"
+)
+
+add_executable(interface_test_i src/interface_test_i.cpp)
+ament_target_dependencies(interface_test_i
+  "rclcpp"
+  "moveit_ros_planning_interface"
+  "geometry_msgs"
+)
+
+install(TARGETS
+  moveit_interface_node_i
+  moveit_interface_node_c
+  interface_test_c
+  interface_test_i
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
