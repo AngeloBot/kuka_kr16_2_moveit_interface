@@ -42,11 +42,19 @@ ament_target_dependencies(interface_test_i
   "geometry_msgs"
 )
 
+add_executable(tutorial_try src/tutorial_try.cpp)
+ament_target_dependencies(tutorial_try
+  "rclcpp"
+  "moveit_ros_planning_interface"
+  "geometry_msgs"
+)
+
 install(TARGETS
   moveit_interface_node_i
   moveit_interface_node_c
   interface_test_c
   interface_test_i
+  tutorial_try
   DESTINATION lib/${PROJECT_NAME}
 )
 

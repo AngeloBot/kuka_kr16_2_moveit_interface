@@ -12,7 +12,8 @@ def generate_launch_description():
     
     this_pkg="kuka_kr16_2_moveit_interface"
     description_pkg="kuka_kr16_2_angelo"
-    moveit_config_pkg="kuka_kr16_2_moveit_config"
+    #moveit_config_pkg="kuka_kr16_2_moveit_config"
+    moveit_config_pkg="kuka_moveit_test"
 
     #moveit_config_yaml="config/kr16_2_simulated_config.yaml"
     robot_name="kr16_2"
@@ -22,7 +23,7 @@ def generate_launch_description():
         MoveItConfigsBuilder(robot_name=robot_name,package_name=description_pkg)
         .robot_description(file_path=get_package_share_directory(description_pkg) + "/config/kr16_2.urdf.xacro")
         .robot_description_kinematics(file_path= get_package_share_directory(moveit_config_pkg) + "/config/kinematics.yaml")
-        .robot_description_semantic(file_path= get_package_share_directory(moveit_config_pkg) + "/config/kr16_2_moveit.srdf.xacro")
+        .robot_description_semantic(file_path= get_package_share_directory(moveit_config_pkg) + "/config/kr16_2.srdf")
         .pilz_cartesian_limits(file_path= get_package_share_directory(moveit_config_pkg) + "/config/pilz_cartesian_limits.yaml")
         .trajectory_execution(file_path= get_package_share_directory(moveit_config_pkg) + "/config/moveit_controllers.yaml")
         .joint_limits(file_path= get_package_share_directory(moveit_config_pkg) + "/config/joint_limits.yaml")
@@ -32,10 +33,10 @@ def generate_launch_description():
         .to_moveit_configs()
     )
     # MoveGroupInterface demo executable
-    moveit_interface_node_i = Node(
+    tutorial_try_node = Node(
         #name="moveit_cpp_interface_node",
         package=this_pkg,
-        executable="moveit_interface_node_i",
+        executable="tutorial_try",
         output="screen",
         parameters=[
             moveit_config.robot_description,
@@ -44,17 +45,5 @@ def generate_launch_description():
         ],
     )
 
-    moveit_interface_node_c = Node(
-        #name="moveit_cpp_interface_node",
-        package=this_pkg,
-        executable="moveit_interface_node_c",
-        output="screen",
-        parameters=[
-            moveit_config.robot_description,
-            moveit_config.robot_description_semantic,
-            moveit_config.robot_description_kinematics,
-        ],
-    )
-
-    #return LaunchDescription([moveit_interface_node_i])
-    return LaunchDescription([moveit_interface_node_c])
+    return LaunchDescription([tutorial_try_node])
+    #return LaunchDescription([moveit_interface_node_c])

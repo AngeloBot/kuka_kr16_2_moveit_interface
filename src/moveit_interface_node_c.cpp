@@ -65,10 +65,10 @@ class KukaMoveItCppInterface
 public:
   // default constructor
   explicit KukaMoveItCppInterface(rclcpp::Node::SharedPtr node)
-    : node_(node)
-      //robot_model_loader_(node, "robot_description"),
-      //robot_model_(robot_model_loader_.getModel()),
-      //robot_state_(std::make_shared<moveit::core::RobotState>(robot_model_))
+    : node_(node),
+      robot_model_loader_(node, "robot_description"),
+      robot_model_(robot_model_loader_.getModel()),
+      robot_state_(std::make_shared<moveit::core::RobotState>(robot_model_))
       {   
       move_group_ptr_= new moveit::planning_interface::MoveGroupInterface(std::make_shared<rclcpp::Node>(node_->get_name()), PLANNING_GROUP);
       //moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
@@ -89,6 +89,12 @@ public:
 
       move_group_ptr_ -> setJointValueTarget(move_group_ptr_ ->getCurrentJointValues());
       move_group_ptr_ -> setNamedTarget("ready");
+      moveit::planning_interface::MoveGroupInterface::Plan plan;
+      bool success = (move_group_ptr_-> plan(plan) == moveit::core::MoveItErrorCode::SUCCESS);
+      RCLCPP_INFO(LOGGER, "Intended Pose Goal %s", success ? "" : "FAILED");
+      if(success){
+        move_group_ptr_-> move(); //execute move if plan was successful
+      }
   }
 
     ~KukaMoveItCppInterface()
@@ -116,9 +122,9 @@ private:
     rclcpp::Node::SharedPtr node_;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr subscription_;
     moveit::planning_interface::MoveGroupInterface* move_group_ptr_;
-    //robot_model_loader::RobotModelLoader robot_model_loader_;
-    //moveit::core::RobotModelPtr robot_model_;
-    //moveit::core::RobotStatePtr robot_state_;
+    robot_model_loader::RobotModelLoader robot_model_loader_;
+    moveit::core::RobotModelPtr robot_model_;
+    moveit::core::RobotStatePtr robot_state_;
     //moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
     //const moveit::core::JointModelGroup* joint_model_group_;
 };

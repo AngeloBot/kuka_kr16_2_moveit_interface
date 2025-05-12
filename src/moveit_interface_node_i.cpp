@@ -81,6 +81,15 @@ public:
 
       subscription_= this->create_subscription<geometry_msgs::msg::PoseStamped>(
         "new_pose_goal",1, std::bind(&KukaMoveItCppInterface::moveCallback, this, _1));
+
+      move_group_ptr_ -> setJointValueTarget(move_group_ptr_ ->getCurrentJointValues());
+      move_group_ptr_ -> setNamedTarget("ready");
+      moveit::planning_interface::MoveGroupInterface::Plan plan;
+      bool success = (move_group_ptr_-> plan(plan) == moveit::core::MoveItErrorCode::SUCCESS);
+      RCLCPP_INFO(LOGGER, "Intended Pose Goal %s", success ? "" : "FAILED");
+      if(success){
+        move_group_ptr_-> move(); //execute move if plan was successful
+      }
   }
 
     ~KukaMoveItCppInterface()
