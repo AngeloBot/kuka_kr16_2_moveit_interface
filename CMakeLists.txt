@@ -10,6 +10,13 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(control_msgs REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(kuka_tabletennis_interfaces REQUIRED)
+find_package(ros_gz_interfaces REQUIRED)
+find_package(ignition-msgs8 REQUIRED)
+find_package(ignition-transport11 REQUIRED)
+#find_package(std_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -49,12 +56,30 @@ ament_target_dependencies(tutorial_try
   "geometry_msgs"
 )
 
+add_executable(example_position src/example_position.cpp)
+ament_target_dependencies(example_position
+  "rclcpp"
+  "rclcpp_action"
+  "control_msgs"
+)
+
+add_executable(ball_spawner src/ball_spawner.cpp)
+ament_target_dependencies(ball_spawner
+  "rclcpp"
+  "kuka_tabletennis_interfaces"
+  "ros_gz_interfaces"
+  "ignition-msgs8"
+  "ignition-transport11"
+)
+
 install(TARGETS
   moveit_interface_node_i
   moveit_interface_node_c
   interface_test_c
   interface_test_i
   tutorial_try
+  example_position
+  ball_spawner  
   DESTINATION lib/${PROJECT_NAME}
 )
 
