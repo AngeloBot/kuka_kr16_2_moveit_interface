@@ -63,14 +63,14 @@ ament_target_dependencies(example_position
   "control_msgs"
 )
 
-add_executable(ball_spawner src/ball_spawner.cpp)
-ament_target_dependencies(ball_spawner
-  "rclcpp"
-  "kuka_tabletennis_interfaces"
-  "ros_gz_interfaces"
-  "ignition-msgs8"
-  "ignition-transport11"
-)
+#add_executable(ball_spawner src/ball_spawner.cpp)
+#ament_target_dependencies(ball_spawner
+#  "rclcpp"
+#  "kuka_tabletennis_interfaces"
+#  "ros_gz_interfaces"
+#  "ignition-msgs8"
+#  "ignition-transport11"
+#)
 
 install(TARGETS
   moveit_interface_node_i
@@ -79,7 +79,7 @@ install(TARGETS
   interface_test_i
   tutorial_try
   example_position
-  ball_spawner  
+  #ball_spawner  
   DESTINATION lib/${PROJECT_NAME}
 )
 
