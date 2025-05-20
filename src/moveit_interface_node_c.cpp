@@ -105,17 +105,18 @@ private:
 
     void moveCallback(const geometry_msgs::msg::PoseStamped & target_pose)
     {
-      RCLCPP_INFO(node_->get_logger(), "Moving to: w='%f' x='%f' y='%f' z='%f'",
+
+      move_group_ptr_-> setPoseTarget(target_pose);
+      moveit::planning_interface::MoveGroupInterface::Plan plan;
+      bool success = (move_group_ptr_-> plan(plan) == moveit::core::MoveItErrorCode::SUCCESS);
+      RCLCPP_INFO(LOGGER, "Intended Pose Goal %s", success ? "" : "FAILED");
+      if(success){
+        RCLCPP_INFO(node_->get_logger(), "Moving to: w='%f' x='%f' y='%f' z='%f'",
         target_pose.pose.orientation.w,
         target_pose.pose.position.x,
         target_pose.pose.position.y,
         target_pose.pose.position.z);
 
-        move_group_ptr_-> setPoseTarget(target_pose);
-      moveit::planning_interface::MoveGroupInterface::Plan plan;
-      bool success = (move_group_ptr_-> plan(plan) == moveit::core::MoveItErrorCode::SUCCESS);
-      RCLCPP_INFO(LOGGER, "Intended Pose Goal %s", success ? "" : "FAILED");
-      if(success){
         move_group_ptr_-> move(); //execute move if plan was successful
       }
     }
